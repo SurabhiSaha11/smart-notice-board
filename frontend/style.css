@@ -66,3 +66,40 @@ main {
 .post-form button:hover {
     background-color: #1a252f;
 }
+
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background-color: white;
+    border: 1px solid #2c3e50;
+    color: #2c3e50;
+    padding: 6px 14px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.filter-btn.active {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.card-actions {
+    margin-top: 10px;
+}
+
+.card-actions button {
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 6px;
+    color: white;
+}
+
+.edit-btn { background-color: #3498db; }
+.delete-btn { background-color: #e74c3c; }
