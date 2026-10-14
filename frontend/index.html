@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Notice Board</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>📢 Campus Notice Board</h1>
+    </header>
+
+    <main>
+        <section class="post-form">
+            <h2>Post a New Notice</h2>
+            <form id="notice-form">
+                <input type="text" id="title" placeholder="Notice Title" required>
+                <textarea id="description" placeholder="Notice Description" required></textarea>
+                <select id="category" required>
+                    <option value="">Select Category</option>
+                    <option value="exam">Exam</option>
+                    <option value="event">Event</option>
+                    <option value="holiday">Holiday</option>
+                    <option value="general">General</option>
+                </select>
+                <button type="submit">Post Notice</button>
+            </form>
+        </section>
+
+        <div id="notice-list">
+            <!-- Notices will be loaded here by JavaScript -->
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
