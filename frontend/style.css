@@ -103,3 +103,33 @@ main {
 
 .edit-btn { background-color: #3498db; }
 .delete-btn { background-color: #e74c3c; }
+
+.user-bar {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.user-bar button {
+    margin-left: 10px;
+    padding: 4px 12px;
+    border: 1px solid white;
+    background: transparent;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.auth-box {
+    max-width: 400px;
+    margin: 40px auto;
+}
+
+.auth-message {
+    color: #e74c3c;
+    font-size: 14px;
+}
+
+.expiry-note {
+    color: #7f8c8d;
+    font-size: 12px;
+}

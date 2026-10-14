@@ -9,10 +9,14 @@
 
     <header>
         <h1>📢 Campus Notice Board</h1>
+        <div class="user-bar">
+            <span id="user-info"></span>
+            <button id="logout-btn">Logout</button>
+        </div>
     </header>
 
     <main>
-        <section class="post-form">
+        <section class="post-form" id="post-section" style="display:none">
             <h2>Post a New Notice</h2>
             <form id="notice-form">
                 <input type="text" id="title" placeholder="Notice Title" required>
@@ -24,6 +28,8 @@
                     <option value="holiday">Holiday</option>
                     <option value="general">General</option>
                 </select>
+                <label for="expiry">Expiry date (optional):</label>
+                <input type="date" id="expiry">
                 <button type="submit">Post Notice</button>
             </form>
         </section>
@@ -36,9 +42,7 @@
             <button class="filter-btn" data-category="general">General</button>
         </div>
 
-        <div id="notice-list">
-            <!-- Notices will be loaded here by JavaScript -->
-        </div>
+        <div id="notice-list"></div>
     </main>
 
     <script src="script.js"></script>
