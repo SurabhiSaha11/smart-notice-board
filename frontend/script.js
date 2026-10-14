@@ -64,6 +64,10 @@ async function loadNotices() {
             ? `<p class="expiry-note">Expires: ${notice.expiry_date}</p>`
             : "";
 
+        const attachment = notice.attachment_url
+            ? `<p><a href="${notice.attachment_url}" target="_blank">📎 View attachment</a></p>`
+            : "";
+
         const card = document.createElement("div");
         card.className = "notice-card";
         card.innerHTML = `
@@ -71,6 +75,7 @@ async function loadNotices() {
             <h3>${escapeHtml(notice.title)}</h3>
             <p>${escapeHtml(notice.description)}</p>
             ${expiry}
+            ${attachment}
             ${actions}
         `;
         noticeList.appendChild(card);
@@ -118,22 +123,27 @@ const noticeForm = document.getElementById("notice-form");
 noticeForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const body = {
-        title: document.getElementById("title").value,
-        description: document.getElementById("description").value,
-        category: document.getElementById("category").value
-    };
+    const formData = new FormData();
+    formData.append("title", document.getElementById("title").value);
+    formData.append("description", document.getElementById("description").value);
+    formData.append("category", document.getElementById("category").value);
+
     const expiry = document.getElementById("expiry").value;
-    if (expiry) body.expiry_date = expiry;
+    if (expiry) formData.append("expiry_date", expiry);
+
+    const file = document.getElementById("attachment").files[0];
+    if (file) formData.append("attachment", file);
 
     const res = await apiFetch(`${API_URL}/notices`, {
         method: "POST",
-        headers: authHeaders(true),
-        body: JSON.stringify(body)
+        headers: authHeaders(),   // no Content-Type: the browser sets it for file uploads
+        body: formData
     });
+
     if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Could not post notice");
+        let msg = "Could not post notice";
+        try { msg = (await res.json()).error || msg; } catch (e) {}
+        alert(msg);
         return;
     }
 

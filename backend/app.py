@@ -8,12 +8,22 @@ from flask_cors import CORS
 from sqlalchemy import or_
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from flask import send_from_directory
 from models import db, Notice, User
+from storage import save_file, delete_file, allowed_file, UPLOAD_FOLDER
 
 app = Flask(__name__)
 CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///notice_board.db'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-later')
+
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB max upload
+
+
+@app.errorhandler(413)
+def file_too_large(e):
+    return jsonify({"error": "File too large (max 5 MB)"}), 413
+
 db.init_app(app)
 
 
@@ -47,6 +57,9 @@ def login_required(admin_only=False):
 def home():
     return {"message": "Notice Board API is running!"}
 
+@app.route('/files/<filename>')
+def serve_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 # ---------- Auth ----------
 @app.route('/register', methods=['POST'])
@@ -124,6 +137,9 @@ def get_notices():
             "description": notice.description,
             "category": notice.category,
             "posted_by": notice.posted_by,
+
+                    "attachment_url": notice.attachment_url,
+
             "created_at": notice.created_at,
             "expiry_date": notice.expiry_date.strftime('%Y-%m-%d') if notice.expiry_date else None
         })
@@ -133,7 +149,7 @@ def get_notices():
 @app.route('/notices', methods=['POST'])
 @login_required(admin_only=True)
 def create_notice():
-    data = request.get_json() or {}
+    data = request.form
 
     if not data.get('title') or not data.get('description') or not data.get('category'):
         return jsonify({"error": "Title, description and category are required"}), 400
@@ -145,17 +161,24 @@ def create_notice():
         except ValueError:
             return jsonify({"error": "expiry_date must be YYYY-MM-DD"}), 400
 
+    attachment_url = None
+    file = request.files.get('attachment')
+    if file and file.filename:
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Only PDF, PNG, JPG files are allowed"}), 400
+        attachment_url = save_file(file)
+
     new_notice = Notice(
         title=data['title'],
         description=data['description'],
         category=data['category'],
         posted_by=g.user['user_id'],
-        expiry_date=expiry
+        expiry_date=expiry,
+        attachment_url=attachment_url
     )
     db.session.add(new_notice)
     db.session.commit()
     return jsonify({"message": "Notice created successfully", "id": new_notice.id}), 201
-
 
 @app.route('/notices/<int:notice_id>', methods=['PUT'])
 @login_required(admin_only=True)
@@ -179,6 +202,8 @@ def delete_notice(notice_id):
     if not notice:
         return jsonify({"error": "Notice not found"}), 404
 
+    delete_file(notice.attachment_url)
+
     db.session.delete(notice)
     db.session.commit()
     return jsonify({"message": "Notice deleted successfully"})
@@ -188,4 +213,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-    
