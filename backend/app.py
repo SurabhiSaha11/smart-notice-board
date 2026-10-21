@@ -10,11 +10,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask import send_from_directory
 from models import db, Notice, User
-from storage import save_file, delete_file, allowed_file, UPLOAD_FOLDER
+from storage import save_file, delete_file, allowed_file, get_url, UPLOAD_FOLDER
+
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///notice_board.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///notice_board.db')
+
+
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+    "connect_args": {"login_timeout": 90} if os.environ.get('DATABASE_URL') else {}
+}
+
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-later')
 
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB max upload
@@ -138,8 +149,7 @@ def get_notices():
             "category": notice.category,
             "posted_by": notice.posted_by,
 
-                    "attachment_url": notice.attachment_url,
-
+                "attachment_url": get_url(notice.attachment_url),
             "created_at": notice.created_at,
             "expiry_date": notice.expiry_date.strftime('%Y-%m-%d') if notice.expiry_date else None
         })
@@ -208,8 +218,11 @@ def delete_notice(notice_id):
     db.session.commit()
     return jsonify({"message": "Notice deleted successfully"})
 
-
-if __name__ == '__main__':
+try:
     with app.app_context():
         db.create_all()
+except Exception as e:
+    print("Could not create tables at startup:", e)
+
+if __name__ == '__main__':
     app.run(debug=True)
